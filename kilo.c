@@ -80,12 +80,25 @@ char editorReadKey(){
 
 /*** output ***/
 
+//Handles drawing rows of the buffer of text being edited.
+// 24 rows for now because we don't know size of terminal yet
+void editorDrawRows(){
+    int y;
+    for (y = 0; y < 24; y++){
+        write(STDOUT_FILENO, "~\r\n", 3);
+    }
+}
+
 void editorRefreshScreen(){
     write(STDOUT_FILENO, "\x1b[2J", 4); // 4 means we're writing 4 bytes to terminal
     //First byte \x1b (escape char) or 27 in dec
     //<esc>[2J command left cursor at bottom of screen
 
     write(STDOUT_FILENO, "\x1b[H", 3); // H command to position cursor
+
+    editorDrawRows();
+
+    write(STDOUT_FILENO, "\x1b[H", 3); // Escape sequence to reposition cursor back up to top-left corner
 }
 
 
