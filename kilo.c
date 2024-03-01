@@ -7,13 +7,16 @@
 #include <stdio.h>
 #include <errno.h>
 
+
 /*** defines ***/
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
+
 /*** data ***/
 
 struct termios orig_termios;
+
 
 /*** terminal ***/
 
@@ -60,8 +63,33 @@ void enableRawMode(){
     if (tcsetattr(STDERR_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
+//Wait for a keypress and return it.
+char editorReadKey(){
+    int nread;
+    char c;
+    while((nread = read(STDIN_FILENO, &c, 1)) != 1){
+        if(nread == -1 && errno != EAGAIN) die("read");
+    }
+    return c;
+}
+
+
+/*** input ***/
+
+// Waits for a keypress and handles it.
+void editorProcessKeypress(){
+    char c= editorReadKey();
+
+    switch (c){
+        case CTRL_KEY('q'):
+            exit(0);
+            break;
+    }
+}
+
 
 /*** init ***/
+
 int main(){
 
     //Turning off echoing
@@ -70,14 +98,7 @@ int main(){
     // Read 1 byte from std input until there are no more bytes to read
     // Exit if user types q
     while(1){
-        char c = '\0';
-        if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) die("read");
-        if (iscntrl(c)){ // iscntrl tests whether char is a control character (ASCII codes 0-31, 127 as well)
-            printf("%d\r\n", c);
-        } else{
-            printf("%d ('%c')\r\n", c, c);
-        }
-        if(c == CTRL_KEY('q')) break;
+        editorProcessKeypress();
     }
 
     return 0;
