@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
+
 /*** defines ***/
 
 #define CTRL_KEY(k) ((k) & 0x1f)
@@ -16,6 +17,8 @@
 /*** data ***/
 
 struct editorConfig{
+    int screenrows;
+    int screencols;
     struct termios orig_termios;
 };
 
@@ -84,6 +87,7 @@ char editorReadKey(){
 int getWindowSize(int *rows, int *cols){
     struct winsize ws;
 
+    // ioctl will place num of number of cols wide and num of tows high into the terminal is into the given winsize struct
     if (ioctl(STDERR_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0){
         return -1;
     } else{
@@ -96,10 +100,9 @@ int getWindowSize(int *rows, int *cols){
 /*** output ***/
 
 //Handles drawing rows of the buffer of text being edited.
-// 24 rows for now because we don't know size of terminal yet
 void editorDrawRows(){
     int y;
-    for (y = 0; y < 24; y++){
+    for (y = 0; y < E.screenrows; y++){
         write(STDOUT_FILENO, "~\r\n", 3);
     }
 }
@@ -134,6 +137,11 @@ void editorProcessKeypress(){
 
 
 /*** init ***/
+
+//Initialize  all the fields into the E struct
+void initEditor(){
+    if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
+}
 
 int main(){
 
