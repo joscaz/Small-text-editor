@@ -15,7 +15,11 @@
 
 /*** data ***/
 
-struct termios orig_termios;
+struct editorConfig{
+    struct termios orig_termios;
+};
+
+struct editorConfig E;
 
 
 /*** terminal ***/
@@ -31,15 +35,15 @@ void die(const char *s){
 
 // Disabling raw mode at exit
 void disableRawMode(){
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) // TCSAFLUSH discards any unread input before applying the changes to the terminal
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios) == -1) // TCSAFLUSH discards any unread input before applying the changes to the terminal
         die("tcsetattr"); // Call die when they fail
 }
 
 void enableRawMode(){
-    if(tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr"); // Call die when they fail
+    if(tcgetattr(STDIN_FILENO, &E.orig_termios) == -1) die("tcgetattr"); // Call die when they fail
     atexit(disableRawMode); // Called automatically when program exits
 
-    struct termios raw = orig_termios;
+    struct termios raw = E.orig_termios;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     // BRKINT - when turned on, a breadk condition will cause SIGINT signal, to be sent to program, like pressing Ctrl-C
     // INPCK - enables parity checking (doesn't seem to apply to modern terminal emulators)
