@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <errno.h>
 
+/*** defines ***/
+
+#define CTRL_KEY(k) ((k) & 0x1f)
 
 /*** data ***/
 
@@ -74,7 +77,7 @@ int main(){
         } else{
             printf("%d ('%c')\r\n", c, c);
         }
-        if(c == 'q') break;
+        if(c == CTRL_KEY('q')) break;
     }
 
     return 0;
