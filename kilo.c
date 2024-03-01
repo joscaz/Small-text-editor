@@ -74,6 +74,14 @@ char editorReadKey(){
 }
 
 
+/*** output ***/
+
+void editorRefreshScreen(){
+    write(STDOUT_FILENO, "\x1b[2J", 4); // 4 means we're writing 4 bytes to terminal
+    //First byte \x1b (escape char) or 27 in dec
+}
+
+
 /*** input ***/
 
 // Waits for a keypress and handles it.
