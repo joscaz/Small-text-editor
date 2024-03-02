@@ -163,6 +163,7 @@ void editorDrawRows(struct abuf *ab){
 void editorRefreshScreen(){
     struct abuf ab = ABUF_INIT;
 
+    abAppend(&ab, "\x1b[?25l", 6);
     abAppend(&ab, "\x1b[2J", 4); // 4 means we're writing 4 bytes to terminal
     //First byte \x1b (escape char) or 27 in dec
     //<esc>[2J command left cursor at bottom of screen
@@ -172,6 +173,7 @@ void editorRefreshScreen(){
     editorDrawRows(&ab);
 
     abAppend(&ab, "\x1b[H", 3); // Escape sequence to reposition cursor back up to top-left corner
+    abAppend(&ab, "\x1b[?25h", 6);
 
     write(STDOUT_FILENO, ab.b, ab.len);
     abFree(&ab);
