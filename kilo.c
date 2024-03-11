@@ -25,6 +25,7 @@
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 enum editorKey {
+    BACKSPACE = 127,
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
@@ -225,7 +226,7 @@ void editorUpdateRow(erow *row) {
     int idx = 0;
     for (j = 0; j < row->size; j++) {
         if (row->chars[j] == '\t') {
-            row->render[idx++] == ' ';
+            row->render[idx++] = ' ';
             while (idx % KILO_TAB_STOP != 0) row->render[idx++] = ' ';
         } else {
             row->render[idx++] = row->chars[j];
@@ -246,7 +247,7 @@ void editorAppendRow(char *s, size_t len){
 
     E.row[at].rsize = 0;
     E.row[at].render = NULL;
-    editorAppendRow(&E.row[at]);
+    editorUpdateRow(&E.row[at]);
 
     E.numrows++;
 }
@@ -474,6 +475,10 @@ void editorProcessKeypress(){
     int c = editorReadKey();
 
     switch (c){
+        case '\r':
+            /* TODO */
+            break;
+
         case CTRL_KEY('q'):
             write(STDOUT_FILENO, "\x1b[2J", 4);
             write(STDOUT_FILENO, "\x1b[H", 3);
@@ -487,6 +492,12 @@ void editorProcessKeypress(){
         case END_KEY:
             if (E.cy < E.numrows)
                 E.cx = E.row[E.cy].size;
+            break;
+
+        case BACKSPACE:
+        case CTRL_KEY('h'):
+        case DEL_KEY:
+            /* TODO */
             break;
         
         case PAGE_UP:
@@ -510,6 +521,10 @@ void editorProcessKeypress(){
         case ARROW_LEFT:
         case ARROW_RIGHT:
             editorMoveCursor(c);
+            break;
+
+        case CTRL_KEY('l'):
+        case '\x1b':
             break;
 
         default:
@@ -548,7 +563,7 @@ int main(int argc, char *argv[]){
         editorOpen(argv[1]);
     }
 
-    editorSetStatusMessage("HELP: Ctrl - Q = quit")
+    editorSetStatusMessage("HELP: Ctrl - Q = quit");
 
     // Exit if user types q
     while (1){
