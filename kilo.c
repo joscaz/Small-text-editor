@@ -65,6 +65,7 @@ struct editorSyntax {
 };
 
 typedef struct erow {
+    int idx;
     int size;
     int rsize;
     char *chars;
@@ -94,7 +95,7 @@ struct editorConfig E;
 
 /*** filetypes ***/
 char *C_HL_extensions[] = { ".c", ".h", ".cpp", NULL };
-char *C_HL_KEYWORDS = {
+char *C_HL_keywords[] = {
         "switch", "if", "while", "for", "break", "continue", "return", "else",
         "struct", "union", "typedef", "static", "enum", "class", "case",
 
@@ -106,14 +107,14 @@ struct editorSyntax HLDB[] = {
         {
             "c",
             C_HL_extensions,
-            C_HL_KEYWORDS,
+            C_HL_keywords,
             "\\", "/*", "*/",
             HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
         },
 };
 
 // HLDB = Highlight database
-#define HLDB_ENTRIES (sizeof(HDLB) / sizeof(HLDB[0])) // Constant to store length of HLDB array
+#define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0])) // Constant to store length of HLDB array
 
 /*** prototypes ***/
 void editorSetStatusMessage(const char *fmt, ...);
@@ -150,9 +151,7 @@ void enableRawMode(){
     // ICRNL - Ctrl-M is now read as a 13 (carriage return), as well as the enter key
 
     raw.c_oflag &= ~(OPOST);// Turning off all output processing
-
     raw.c_cflag |= (CS8); // Bitmask with multiple bits (not a flag). It sets the character size (CS) to 8 bits per byte.
-
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     // ICANON - turning off canonical mode, meaning it will be reading input byte-by-byte instead of line-by-line
     // ISIG - turning off Ctrl-C and Ctrl-Z signals and now can be read as a byte
@@ -285,8 +284,8 @@ void editorUpdateSyntax(erow *row) {
         unsigned char prev_hl = (i > 0) ? row->hl[i - 1] : HL_NORMAL;
 
         if (scs_len && !in_string && !in_comment) {
-            if (!strcmp(&row->render[i], scs, scs_len)) {
-                memset(&row->hl[i], HL_COMMENT, row->size - i);
+            if (!strncmp(&row->render[i], scs, scs_len)) {
+                memset(&row->hl[i], HL_COMMENT, row->rsize - i);
                 break;
             }
         }
@@ -350,7 +349,7 @@ void editorUpdateSyntax(erow *row) {
                 int kw2 = keywords[j][klen - 1] == '|';
                 if (kw2) klen--;
 
-                if (!strcmp(&row->render[i], keywords[j], klen) &&
+                if (!strncmp(&row->render[i], keywords[j], klen) &&
                         is_separator(row->render[i+klen])) {
                     memset(&row->hl[i], kw2 ? HL_KEYWORD2 : HL_KEYWORD1, klen);
                     i += klen;
@@ -437,6 +436,7 @@ int editorRowRxToCx(erow *row, int rx) {
 
         if (cur_rx > rx) return cx;
     }
+    return cx;:wq
 }
 
 void editorUpdateRow(erow *row) {
